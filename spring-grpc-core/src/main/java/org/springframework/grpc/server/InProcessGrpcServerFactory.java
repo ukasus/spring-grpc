@@ -30,7 +30,7 @@ public class InProcessGrpcServerFactory extends DefaultGrpcServerFactory<InProce
 
 	public InProcessGrpcServerFactory(String address,
 			List<ServerBuilderCustomizer<InProcessServerBuilder>> serverBuilderCustomizers) {
-		super(address, serverBuilderCustomizers, null, null, null);
+		super(address, serverBuilderCustomizers, null);
 	}
 
 	@Override

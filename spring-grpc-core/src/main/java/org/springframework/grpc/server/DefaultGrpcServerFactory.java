@@ -22,8 +22,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.TrustManager;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -66,9 +66,9 @@ public class DefaultGrpcServerFactory<T extends ServerBuilder<T>> implements Grp
 
 	private final List<ServerBuilderCustomizer<T>> serverBuilderCustomizers;
 
-	private @Nullable KeyManagerFactory keyManager;
+	private KeyManager @Nullable [] keyManagers;
 
-	private @Nullable TrustManagerFactory trustManager;
+	private TrustManager @Nullable [] trustManagers;
 
 	private @Nullable ClientAuth clientAuth;
 
@@ -83,11 +83,8 @@ public class DefaultGrpcServerFactory<T extends ServerBuilder<T>> implements Grp
 	}
 
 	public DefaultGrpcServerFactory(String address, List<ServerBuilderCustomizer<T>> serverBuilderCustomizers,
-			@Nullable KeyManagerFactory keyManager, @Nullable TrustManagerFactory trustManager,
 			@Nullable ClientAuth clientAuth) {
 		this(address, serverBuilderCustomizers);
-		this.keyManager = keyManager;
-		this.trustManager = trustManager;
 		this.clientAuth = clientAuth;
 	}
 
@@ -97,6 +94,14 @@ public class DefaultGrpcServerFactory<T extends ServerBuilder<T>> implements Grp
 
 	public void setInterceptorFilter(@Nullable ServerInterceptorFilter interceptorFilter) {
 		this.interceptorFilter = interceptorFilter;
+	}
+
+	public void setKeyManagers(KeyManager @Nullable [] keyManagers) {
+		this.keyManagers = keyManagers;
+	}
+
+	public void setTrustManagers(TrustManager @Nullable [] trustManagers) {
+		this.trustManagers = trustManagers;
 	}
 
 	@Override
@@ -157,12 +162,12 @@ public class DefaultGrpcServerFactory<T extends ServerBuilder<T>> implements Grp
 	 * @return some server credentials (default is insecure)
 	 */
 	protected ServerCredentials credentials() {
-		if (this.keyManager == null || port() == -1) {
+		if (this.keyManagers == null || port() == -1) {
 			return InsecureServerCredentials.create();
 		}
-		Builder builder = TlsServerCredentials.newBuilder().keyManager(this.keyManager.getKeyManagers());
-		if (this.trustManager != null) {
-			builder.trustManager(this.trustManager.getTrustManagers());
+		Builder builder = TlsServerCredentials.newBuilder().keyManager(this.keyManagers);
+		if (this.trustManagers != null) {
+			builder.trustManager(this.trustManagers);
 		}
 		if (this.clientAuth != null) {
 			builder.clientAuth(this.clientAuth);

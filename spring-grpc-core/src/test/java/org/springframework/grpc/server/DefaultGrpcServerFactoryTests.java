@@ -42,7 +42,7 @@ class DefaultGrpcServerFactoryTests {
 
 		@Test
 		void portDelegatesToGrpcUtils() {
-			var serverFactory = new DefaultGrpcServerFactory<>("*:9090", Collections.emptyList(), null, null, null);
+			var serverFactory = new DefaultGrpcServerFactory<>("*:9090", Collections.emptyList(), null);
 			try (MockedStatic<GrpcUtils> mockedStaticGrpcUtils = Mockito.mockStatic(GrpcUtils.class)) {
 				serverFactory.port();
 				mockedStaticGrpcUtils.verify(() -> GrpcUtils.getPort("*:9090"));
@@ -51,7 +51,7 @@ class DefaultGrpcServerFactoryTests {
 
 		@Test
 		void hostnameDelegatesToGrpcUtils() {
-			var serverFactory = new DefaultGrpcServerFactory<>("*:9090", Collections.emptyList(), null, null, null);
+			var serverFactory = new DefaultGrpcServerFactory<>("*:9090", Collections.emptyList(), null);
 			try (MockedStatic<GrpcUtils> mockedStaticGrpcUtils = Mockito.mockStatic(GrpcUtils.class)) {
 				serverFactory.hostname();
 				mockedStaticGrpcUtils.verify(() -> GrpcUtils.getHostName("*:9090"));
@@ -68,8 +68,7 @@ class DefaultGrpcServerFactoryTests {
 			ServerServiceDefinition serviceDef1 = mock();
 			ServerServiceDefinition serviceDef2 = mock();
 			@SuppressWarnings({ "rawtypes", "unchecked" })
-			DefaultGrpcServerFactory serverFactory = new DefaultGrpcServerFactory("myhost:5150", List.of(), null, null,
-					null);
+			DefaultGrpcServerFactory serverFactory = new DefaultGrpcServerFactory("myhost:5150", List.of(), null);
 			serverFactory.addService(serviceDef2);
 			serverFactory.addService(serviceDef1);
 			assertThat(serverFactory)
@@ -83,8 +82,7 @@ class DefaultGrpcServerFactoryTests {
 			ServerServiceDefinition serviceDef2 = mock();
 			ServerServiceDefinitionFilter serviceFilter = (serviceDef, serviceFactory) -> true;
 			@SuppressWarnings({ "rawtypes", "unchecked" })
-			DefaultGrpcServerFactory serverFactory = new DefaultGrpcServerFactory("myhost:5150", List.of(), null, null,
-					null);
+			DefaultGrpcServerFactory serverFactory = new DefaultGrpcServerFactory("myhost:5150", List.of(), null);
 			serverFactory.setServiceFilter(serviceFilter);
 			serverFactory.addService(serviceDef2);
 			serverFactory.addService(serviceDef1);
@@ -99,8 +97,7 @@ class DefaultGrpcServerFactoryTests {
 			ServerServiceDefinition serviceDef2 = mock();
 			ServerServiceDefinitionFilter serviceFilter = (serviceDef, serviceFactory) -> serviceDef == serviceDef1;
 			@SuppressWarnings({ "rawtypes", "unchecked" })
-			DefaultGrpcServerFactory serverFactory = new DefaultGrpcServerFactory("myhost:5150", List.of(), null, null,
-					null);
+			DefaultGrpcServerFactory serverFactory = new DefaultGrpcServerFactory("myhost:5150", List.of(), null);
 			serverFactory.setServiceFilter(serviceFilter);
 			serverFactory.addService(serviceDef2);
 			serverFactory.addService(serviceDef1);

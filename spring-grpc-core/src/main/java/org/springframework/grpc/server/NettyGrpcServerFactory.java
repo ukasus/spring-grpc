@@ -20,9 +20,6 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.List;
 
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.TrustManagerFactory;
-
 import org.jspecify.annotations.Nullable;
 
 import org.springframework.grpc.internal.GrpcUtils;
@@ -45,9 +42,8 @@ public class NettyGrpcServerFactory extends DefaultGrpcServerFactory<NettyServer
 
 	public NettyGrpcServerFactory(String address,
 			List<ServerBuilderCustomizer<NettyServerBuilder>> serverBuilderCustomizers,
-			@Nullable KeyManagerFactory keyManager, @Nullable TrustManagerFactory trustManager,
 			@Nullable ClientAuth clientAuth) {
-		super(address, serverBuilderCustomizers, keyManager, trustManager, clientAuth);
+		super(address, serverBuilderCustomizers, clientAuth);
 	}
 
 	@Override

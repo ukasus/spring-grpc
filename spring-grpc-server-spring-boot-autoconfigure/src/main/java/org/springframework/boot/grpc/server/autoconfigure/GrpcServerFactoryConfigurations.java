@@ -19,9 +19,6 @@ package org.springframework.boot.grpc.server.autoconfigure;
 import java.util.List;
 import java.util.Objects;
 
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.TrustManagerFactory;
-
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -42,7 +39,6 @@ import org.springframework.grpc.server.lifecycle.GrpcServerLifecycle;
 import org.springframework.grpc.server.service.GrpcServiceConfigurer;
 import org.springframework.grpc.server.service.GrpcServiceDiscoverer;
 import org.springframework.grpc.server.service.ServerInterceptorFilter;
-import org.springframework.util.Assert;
 
 import io.grpc.inprocess.InProcessServerBuilder;
 import io.grpc.netty.NettyServerBuilder;
@@ -72,30 +68,17 @@ class GrpcServerFactoryConfigurations {
 		ShadedNettyGrpcServerFactory shadedNettyGrpcServerFactory(GrpcServerProperties properties,
 				GrpcServiceDiscoverer serviceDiscoverer, GrpcServiceConfigurer serviceConfigurer,
 				ServerBuilderCustomizers serverBuilderCustomizers, SslBundles bundles,
-				ObjectProvider<KeyManagerFactory> keyManagerFactoryProvider,
-				ObjectProvider<TrustManagerFactory> trustManagerFactoryProvider,
 				ObjectProvider<GrpcServerFactoryCustomizer> customizers) {
 			ShadedNettyServerFactoryPropertyMapper mapper = new ShadedNettyServerFactoryPropertyMapper(properties);
 			List<ServerBuilderCustomizer<io.grpc.netty.shaded.io.grpc.netty.NettyServerBuilder>> builderCustomizers = List
 				.of(mapper::customizeServerBuilder, serverBuilderCustomizers::customize);
-			KeyManagerFactory keyManager = null;
-			TrustManagerFactory trustManager = null;
-			if (properties.getSsl().determineEnabled()) {
-				keyManager = keyManagerFactoryProvider.getIfAvailable(() -> {
-					String bundleName = properties.getSsl().getBundle();
-					Assert.notNull(bundleName, () -> "SSL bundleName must not be null");
-					return bundles.getBundle(bundleName).getManagers().getKeyManagerFactory();
-				});
-				trustManager = trustManagerFactoryProvider.getIfAvailable(() -> {
-					String bundleName = properties.getSsl().getBundle();
-					Assert.notNull(bundleName, () -> "SSL bundleName must not be null");
-					return properties.getSsl().isSecure()
-							? bundles.getBundle(bundleName).getManagers().getTrustManagerFactory()
-							: io.grpc.netty.shaded.io.netty.handler.ssl.util.InsecureTrustManagerFactory.INSTANCE;
-				});
-			}
+			GrpcServerSslManagerResolver.ResolvedSslManagers sslManagers = GrpcServerSslManagerResolver.resolve(
+					properties, bundles,
+					io.grpc.netty.shaded.io.netty.handler.ssl.util.InsecureTrustManagerFactory.INSTANCE);
 			ShadedNettyGrpcServerFactory factory = new ShadedNettyGrpcServerFactory(properties.determineAddress(),
-					builderCustomizers, keyManager, trustManager, properties.getSsl().getClientAuth());
+					builderCustomizers, properties.getSsl().getClientAuth());
+			factory.setKeyManagers(sslManagers.keyManagers());
+			factory.setTrustManagers(sslManagers.trustManagers());
 			applyServerFactoryCustomizers(customizers, factory);
 			serviceDiscoverer.findServices()
 				.stream()
@@ -126,30 +109,16 @@ class GrpcServerFactoryConfigurations {
 		NettyGrpcServerFactory nettyGrpcServerFactory(GrpcServerProperties properties,
 				GrpcServiceDiscoverer serviceDiscoverer, GrpcServiceConfigurer serviceConfigurer,
 				ServerBuilderCustomizers serverBuilderCustomizers, SslBundles bundles,
-				ObjectProvider<KeyManagerFactory> keyManagerFactoryProvider,
-				ObjectProvider<TrustManagerFactory> trustManagerFactoryProvider,
 				ObjectProvider<GrpcServerFactoryCustomizer> customizers) {
 			NettyServerFactoryPropertyMapper mapper = new NettyServerFactoryPropertyMapper(properties);
 			List<ServerBuilderCustomizer<NettyServerBuilder>> builderCustomizers = List
 				.of(mapper::customizeServerBuilder, serverBuilderCustomizers::customize);
-			KeyManagerFactory keyManager = null;
-			TrustManagerFactory trustManager = null;
-			if (properties.getSsl().determineEnabled()) {
-				keyManager = keyManagerFactoryProvider.getIfAvailable(() -> {
-					String bundleName = properties.getSsl().getBundle();
-					Assert.notNull(bundleName, () -> "SSL bundleName must not be null");
-					return bundles.getBundle(bundleName).getManagers().getKeyManagerFactory();
-				});
-				trustManager = trustManagerFactoryProvider.getIfAvailable(() -> {
-					String bundleName = properties.getSsl().getBundle();
-					Assert.notNull(bundleName, () -> "SSL bundleName must not be null");
-					return properties.getSsl().isSecure()
-							? bundles.getBundle(bundleName).getManagers().getTrustManagerFactory()
-							: InsecureTrustManagerFactory.INSTANCE;
-				});
-			}
+			GrpcServerSslManagerResolver.ResolvedSslManagers sslManagers = GrpcServerSslManagerResolver
+				.resolve(properties, bundles, InsecureTrustManagerFactory.INSTANCE);
 			NettyGrpcServerFactory factory = new NettyGrpcServerFactory(properties.determineAddress(),
-					builderCustomizers, keyManager, trustManager, properties.getSsl().getClientAuth());
+					builderCustomizers, properties.getSsl().getClientAuth());
+			factory.setKeyManagers(sslManagers.keyManagers());
+			factory.setTrustManagers(sslManagers.trustManagers());
 			applyServerFactoryCustomizers(customizers, factory);
 			serviceDiscoverer.findServices()
 				.stream()

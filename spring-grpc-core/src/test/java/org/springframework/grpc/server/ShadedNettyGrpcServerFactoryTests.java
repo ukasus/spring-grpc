@@ -43,8 +43,8 @@ class ShadedNettyGrpcServerFactoryTests {
 	@Test
 	@EnabledOnOs(OS.LINUX)
 	void newServerBuilderUsesDomainSocketAddress() {
-		var serverFactory = new ShadedNettyGrpcServerFactory("unix:/some/file/somewhere", Collections.emptyList(), null,
-				null, null);
+		var serverFactory = new ShadedNettyGrpcServerFactory("unix:/some/file/somewhere", Collections.emptyList(),
+				null);
 		try (MockedStatic<NettyServerBuilder> mockStaticServerBuilder = Mockito.mockStatic(NettyServerBuilder.class)) {
 			mockStaticServerBuilder.when(() -> NettyServerBuilder.forAddress(any(SocketAddress.class)))
 				.thenCallRealMethod();
@@ -56,8 +56,7 @@ class ShadedNettyGrpcServerFactoryTests {
 
 	@Test
 	void newServerBuilderUsesPortOnlyWhenHostIsNull() {
-		var serverFactory = new ShadedNettyGrpcServerFactory("/path/to/resource", Collections.emptyList(), null, null,
-				null);
+		var serverFactory = new ShadedNettyGrpcServerFactory("/path/to/resource", Collections.emptyList(), null);
 		try (MockedStatic<NettyServerBuilder> serverBuilder = Mockito.mockStatic(NettyServerBuilder.class)) {
 			serverFactory.newServerBuilder();
 			serverBuilder.verify(() -> NettyServerBuilder.forPort(eq(9090), any(ServerCredentials.class)));
@@ -66,7 +65,7 @@ class ShadedNettyGrpcServerFactoryTests {
 
 	@Test
 	void newServerBuilderUsesPortOnlyWhenHostIsWildcard() {
-		var serverFactory = new ShadedNettyGrpcServerFactory("*:9090", Collections.emptyList(), null, null, null);
+		var serverFactory = new ShadedNettyGrpcServerFactory("*:9090", Collections.emptyList(), null);
 		try (MockedStatic<NettyServerBuilder> serverBuilder = Mockito.mockStatic(NettyServerBuilder.class)) {
 			serverFactory.newServerBuilder();
 			serverBuilder.verify(() -> NettyServerBuilder.forPort(eq(9090), any(ServerCredentials.class)));
@@ -75,7 +74,7 @@ class ShadedNettyGrpcServerFactoryTests {
 
 	@Test
 	void newServerBuilderUsesHostAndPortWhenHostSpecified() {
-		var serverFactory = new ShadedNettyGrpcServerFactory("foo:9191", Collections.emptyList(), null, null, null);
+		var serverFactory = new ShadedNettyGrpcServerFactory("foo:9191", Collections.emptyList(), null);
 		try (MockedStatic<NettyServerBuilder> serverBuilder = Mockito.mockStatic(NettyServerBuilder.class)) {
 			serverFactory.newServerBuilder();
 			serverBuilder.verify(() -> NettyServerBuilder.forAddress(eq(new InetSocketAddress("foo", 9191)),

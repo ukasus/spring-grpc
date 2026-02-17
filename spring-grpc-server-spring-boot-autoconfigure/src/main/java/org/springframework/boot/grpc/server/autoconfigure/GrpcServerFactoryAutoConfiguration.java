@@ -62,8 +62,7 @@ public final class GrpcServerFactoryAutoConfiguration {
 	static class GrpcServerFactoryConfiguration {
 
 		@Configuration(proxyBeanMethods = false)
-		@Import({ GrpcServerSslConfiguration.class,
-				GrpcServerFactoryConfigurations.ShadedNettyServerFactoryConfiguration.class,
+		@Import({ GrpcServerFactoryConfigurations.ShadedNettyServerFactoryConfiguration.class,
 				GrpcServerFactoryConfigurations.NettyServerFactoryConfiguration.class,
 				GrpcServerFactoryConfigurations.InProcessServerFactoryConfiguration.class })
 		static class NettyServerFactoryConfiguration {
